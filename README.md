@@ -236,10 +236,6 @@ The library includes specific exception types:
 
 The library is thread-safe and can be used from multiple threads simultaneously. Each lock acquisition creates a unique lock token to prevent conflicts.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history and breaking changes.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -250,4 +246,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-If you encounter any issues or have questions, please [open an issue](https://github.com/MDLSoft/MDLSoft.DistributedLock/issues) on GitHub.
+If you encounter any issues or have questions, please [open an issue](https://github.com/mdallago/MDLSoft.DistributedLock/issues) on GitHub.

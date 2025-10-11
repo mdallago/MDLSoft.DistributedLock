@@ -4,17 +4,17 @@
     <TargetFrameworks>net40;net451;net461;net48;netstandard2.0</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>MDLSoft.DistributedLock</PackageId>
-    <Title>MDLSoft Distributed Lock</Title>
+    <Title>Distributed Lock</Title>
     <Authors>MDLSoft</Authors>
     <Description>A lightweight distributed lock library for SQL Server with sync and async support (.NET 4.0+, no external dependencies)</Description>
-    <PackageProjectUrl>https://github.com/MDLSoft/MDLSoft.DistributedLock</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/mdallago/MDLSoft.DistributedLock</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>distributed-lock;sql-server;concurrency;lock;lightweight;no-dependencies</PackageTags>
-    <RepositoryUrl>https://github.com/MDLSoft/MDLSoft.DistributedLock</RepositoryUrl>
+    <RepositoryUrl>https://github.com/mdallago/MDLSoft.DistributedLock</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>3.0.0</Version>
-    <AssemblyVersion>3.0.0.0</AssemblyVersion>
-    <FileVersion>3.0.0.0</FileVersion>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
 
   <!-- Define compile-time constants per target framework -->

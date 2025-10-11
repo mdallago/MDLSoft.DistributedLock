@@ -14,9 +14,9 @@
     <Authors>MDLSoft</Authors>
     <Company>MDLSoft</Company>
     <Product>MDLSoft.DistributedLock</Product>
-    <Copyright>Copyright © MDLSoft 2024</Copyright>
-    <PackageProjectUrl>https://github.com/MDLSoft/MDLSoft.DistributedLock</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/MDLSoft/MDLSoft.DistributedLock</RepositoryUrl>
+    <Copyright>Copyright © MDLSoft 2025</Copyright>
+    <PackageProjectUrl>https://github.com/mdallago/MDLSoft.DistributedLock</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mdallago/MDLSoft.DistributedLock</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
