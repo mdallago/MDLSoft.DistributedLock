@@ -9,6 +9,8 @@
     <Description>A lightweight distributed lock library for SQL Server with sync and async support (.NET 4.0+, no external dependencies)</Description>
     <PackageProjectUrl>https://github.com/mdallago/MDLSoft.DistributedLock</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>distributed-lock;sql-server;concurrency;lock;lightweight;no-dependencies</PackageTags>
     <RepositoryUrl>https://github.com/mdallago/MDLSoft.DistributedLock</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

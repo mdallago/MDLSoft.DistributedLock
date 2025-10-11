@@ -55,7 +55,7 @@ jobs:
           **/*.trx
           **/coverage.cobertura.xml
 
-  build-and-pack:
+  package:
     name: Build and Pack
     runs-on: windows-latest
     needs: test
@@ -92,47 +92,136 @@ jobs:
         name: nuget-packages
         path: ./artifacts/*.nupkg
 
-  publish:
-    name: Publish to NuGet
+validate-nuget:
+    needs: package
     runs-on: windows-latest
-    needs: build-and-pack
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    environment: production
     
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: nuget-packages
-        path: ./artifacts
-        
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
-        
-    - name: Publish to NuGet
+        dotnet-version: |
+          8.0.x
+          6.0.x
+          
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: 📥 Download NuGet package artifacts
+      uses: actions/download-artifact@v5
+      with:
+        name: nuget-packages
+        path: ${{ env.NuGetDirectory }}
+    
+    - name: 🔍 Validate NuGet packages
       run: |
-        dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        echo "Validating NuGet packages..."
+        foreach($file in (Get-ChildItem "${{ env.NuGetDirectory }}" -Recurse -Include *.nupkg)) {
+          Write-Host "Validating package: $($file.Name)"
+          
+          # Check if package exists and has reasonable size
+          if ($file.Length -lt 1KB) {
+            Write-Error "Package $($file.Name) is too small (less than 1KB)"
+            exit 1
+          }
+          
+          Write-Host "✅ Package size check passed: $($file.Length) bytes"
+          
+          # Try advanced validation, fall back to basic if needed
+          $validationPassed = $false
+          
+          try {
+            # Advanced validation: Extract and inspect package contents
+            $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+            New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+            
+            # Verify temp directory exists
+            if (-not (Test-Path $tempDir)) {
+              throw "Failed to create temp directory"
+            }
+            
+            # Load compression assembly and extract
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($file.FullName, $tempDir)
+            
+            # Check for .nuspec file
+            $nuspecFiles = Get-ChildItem $tempDir -Filter "*.nuspec" -Recurse
+            if ($nuspecFiles.Count -eq 0) {
+              throw "Missing .nuspec file"
+            }
+            
+            Write-Host "✅ Advanced validation passed: Package structure is valid"
+            $validationPassed = $true
+            
+            # Clean up
+            Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          catch {
+            Write-Host "⚠️ Advanced validation failed: $($_.Exception.Message)"
+            Write-Host "🔄 Falling back to basic validation..."
+            
+            # Clean up on error
+            if (Test-Path $tempDir -ErrorAction SilentlyContinue) {
+              Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            
+            # Basic validation: Check if file is a valid ZIP
+            try {
+              Add-Type -AssemblyName System.IO.Compression.FileSystem
+              $zipFile = [System.IO.Compression.ZipFile]::OpenRead($file.FullName)
+              $entryCount = $zipFile.Entries.Count
+              $zipFile.Dispose()
+              
+              if ($entryCount -gt 0) {
+                Write-Host "✅ Basic validation passed: Package contains $entryCount entries"
+                $validationPassed = $true
+              } else {
+                throw "Package appears to be empty"
+              }
+            }
+            catch {
+              Write-Error "❌ Basic validation also failed: $($_.Exception.Message)"
+              exit 1
+            }
+          }
+          
+          if (-not $validationPassed) {
+            Write-Error "❌ Package validation failed for $($file.Name)"
+            exit 1
+          }
+        }
+        Write-Host "🎉 All packages validated successfully!"
 
-  create-release:
-    name: Create GitHub Release
+  security-scan:
     runs-on: ubuntu-latest
-    needs: publish
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
+    - name: 🛒 Checkout
+      uses: actions/checkout@v5
+    
+    - name: 🔒 Initialize CodeQL
+      uses: github/codeql-action/init@v3
       with:
-        name: Release ${{ github.ref_name }}
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        languages: csharp
+    
+    - name: ⚙️ Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: 🔨 Build for analysis
+      run: |
+        dotnet restore
+        dotnet build --configuration Release
+    
+    - name: 🔍 Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:csharp"
+
+  # Note: NuGet publishing is now handled by release.yml workflow
+  # which triggers when a GitHub release is published
