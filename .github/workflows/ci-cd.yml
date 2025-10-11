@@ -92,7 +92,7 @@ jobs:
         name: nuget-packages
         path: ./artifacts/*.nupkg
 
-validate-nuget:
+  validate-nuget:
     needs: package
     runs-on: windows-latest
     
