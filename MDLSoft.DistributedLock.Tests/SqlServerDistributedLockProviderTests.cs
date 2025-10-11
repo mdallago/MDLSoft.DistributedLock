@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
+using AwesomeAssertions;
 using Xunit;
 using Microsoft.Data.SqlClient;
 using MDLSoft.DistributedLock;
@@ -13,7 +13,6 @@ namespace MDLSoft.DistributedLock.Tests
         private readonly string _connectionString;
         private readonly SqlServerDistributedLockProvider _lockProvider;
         private const string TestTableName = "TestDistributedLocks";
-        private readonly bool _skipTests;
 
         public SqlServerDistributedLockProviderTests()
         {
@@ -21,19 +20,10 @@ namespace MDLSoft.DistributedLock.Tests
             // You can modify this connection string for your test environment
             _connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=TestDistributedLocks;Integrated Security=true;TrustServerCertificate=true;";
             _lockProvider = new SqlServerDistributedLockProvider(_connectionString, TestTableName);
-            
-            try
-            {
-                // Ensure database and table exist for testing
-                CreateTestDatabase();
-                _lockProvider.EnsureTableExists();
-                _skipTests = false;
-            }
-            catch
-            {
-                // If we can't connect to the database, skip these tests
-                _skipTests = true;
-            }
+
+            // Ensure database and table exist for testing
+            CreateTestDatabase();
+            _lockProvider.EnsureTableExists();
         }
 
         private void CreateTestDatabase()
@@ -53,8 +43,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldReturnLock_WhenLockNotExists()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-1";
 
@@ -73,8 +63,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldReturnNull_WhenLockAlreadyExists()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-2";
 
@@ -93,8 +83,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public async Task TryAcquireLockAsync_ShouldReturnLock_WhenLockNotExists()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-3";
 
@@ -113,8 +103,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void AcquireLock_ShouldReturnLock_WhenLockNotExists()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-4";
 
@@ -133,18 +123,18 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void AcquireLock_ShouldThrowTimeout_WhenLockAlreadyExistsAndTimeoutSpecified()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-5";
             var timeout = TimeSpan.FromMilliseconds(500);
 
             // Act & Assert
             var firstLock = _lockProvider.AcquireLock(lockId);
-            
+
             var exception = Assert.Throws<DistributedLockTimeoutException>(() =>
                 _lockProvider.AcquireLock(lockId, timeout));
-            
+
             Assert.Equal(lockId, exception.LockId);
 
             // Cleanup
@@ -154,8 +144,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public async Task AcquireLockAsync_ShouldReturnLock_WhenLockNotExists()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-6";
 
@@ -174,8 +164,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void Lock_ShouldBeReleasedAfterDispose()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-7";
 
@@ -199,8 +189,8 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void Lock_ShouldBeReleasedAfterRelease()
         {
-            if (_skipTests) return;
             
+
             // Arrange
             var lockId = "test-lock-8";
 
@@ -222,7 +212,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldThrow_WhenLockIdTooLong()
         {
-            if (_skipTests) return;
+            
             var longId = new string('a', 256);
             Assert.Throws<ArgumentException>(() => _lockProvider.TryAcquireLock(longId));
         }
@@ -230,8 +220,6 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public async Task ConcurrentLockAcquisition_ShouldOnlyAllowOneLock()
         {
-            if (_skipTests) return;
-            
             // Arrange
             var lockId = "concurrent-test-" + Guid.NewGuid();
             var tasks = new Task<bool>[10];
@@ -244,7 +232,7 @@ namespace MDLSoft.DistributedLock.Tests
                 {
                     try
                     {
-                        var lockResult = _lockProvider.TryAcquireLock(lockId, TimeSpan.FromMilliseconds(500));
+                        var lockResult = _lockProvider.TryAcquireLock(lockId, TimeSpan.FromMilliseconds(0));
                         if (lockResult != null)
                         {
                             Interlocked.Increment(ref successCount);
@@ -269,8 +257,8 @@ namespace MDLSoft.DistributedLock.Tests
 
         public void Dispose()
         {
-            if (_skipTests) return;
             
+
             // Cleanup test data
             try
             {
