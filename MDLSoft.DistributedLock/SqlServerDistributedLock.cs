@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ namespace MDLSoft.DistributedLock
     /// <summary>
     /// SQL Server implementation of a distributed lock (lightweight, no external dependencies)
     /// </summary>
-    internal class SqlServerDistributedLock : IDistributedLock
+    internal sealed class SqlServerDistributedLock : IDistributedLock
     {
         private readonly string _connectionString;
         private readonly string _tableName;
@@ -28,19 +28,10 @@ namespace MDLSoft.DistributedLock
 
         internal SqlServerDistributedLock(string connectionString, string tableName, string lockId, string lockToken)
         {
-            if (connectionString == null)
-                throw new ArgumentNullException("connectionString");
-            if (tableName == null)
-                throw new ArgumentNullException("tableName");
-            if (lockId == null)
-                throw new ArgumentNullException("lockId");
-            if (lockToken == null)
-                throw new ArgumentNullException("lockToken");
-
-            _connectionString = connectionString;
-            _tableName = tableName;
-            _lockId = lockId;
-            _lockToken = lockToken;
+            _connectionString = connectionString ?? throw new ArgumentNullException("connectionString");
+            _tableName = tableName ?? throw new ArgumentNullException("tableName");
+            _lockId = lockId ?? throw new ArgumentNullException("lockId");
+            _lockToken = lockToken ?? throw new ArgumentNullException("lockToken");
             _isAcquired = true;
         }
 
@@ -113,8 +104,6 @@ namespace MDLSoft.DistributedLock
                 throw new DistributedLockOperationException(_lockId, "release", ex);
             }
         }
-
-
 
         public void Dispose()
         {

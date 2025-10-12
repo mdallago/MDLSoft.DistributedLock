@@ -1,8 +1,6 @@
-using System;
+﻿using System;
 using System.Configuration;
-using System.Data.SqlClient;
 using System.Threading;
-using MDLSoft.DistributedLock;
 
 namespace MDLSoft.DistributedLock.Example.Net40
 {
@@ -16,12 +14,11 @@ namespace MDLSoft.DistributedLock.Example.Net40
     /// 4. Error handling
     /// 5. Proper disposal patterns
     /// </summary>
-    class Program
+    static class Program
     {
-        private static string _connectionString;
         private static SqlServerDistributedLockProvider _lockProvider;
 
-        static void Main(string[] args)
+        static void Main()
         {
             Console.WriteLine("=== MDLSoft.DistributedLock Example (.NET Framework 4.0) ===\n");
 
@@ -54,13 +51,12 @@ namespace MDLSoft.DistributedLock.Example.Net40
 
         static void InitializeLockProvider()
         {
-            // Get connection string from app.config or use default
-            _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
+            // Get connection string from app.config
+            var _connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"]?.ConnectionString;
 
-            if (string.IsNullOrEmpty(_connectionString))
+            if (string.IsNullOrWhiteSpace(_connectionString))
             {
-                // Fallback connection string
-                _connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=DistributedLockDemo;Integrated Security=true;TrustServerCertificate=true;";
+                throw new InvalidOperationException("Connection string 'DefaultConnection' not found in app.config.");
             }
 
             Console.WriteLine("Using connection string: " + _connectionString.Replace(_connectionString.Split(';')[0], "Server=***"));
@@ -283,7 +279,7 @@ namespace MDLSoft.DistributedLock.Example.Net40
                 // Test invalid lock ID
                 try
                 {
-                    var invalidLock = _lockProvider.TryAcquireLock(null);
+                    var _ = _lockProvider.TryAcquireLock(null);
                     Console.WriteLine("✗ Should have thrown exception for null lock ID");
                 }
                 catch (ArgumentException)
@@ -294,7 +290,7 @@ namespace MDLSoft.DistributedLock.Example.Net40
                 // Test empty lock ID
                 try
                 {
-                    var emptyLock = _lockProvider.TryAcquireLock("");
+                    var _ = _lockProvider.TryAcquireLock("");
                     Console.WriteLine("✗ Should have thrown exception for empty lock ID");
                 }
                 catch (ArgumentException)

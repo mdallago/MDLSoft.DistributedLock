@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,13 +26,8 @@ namespace MDLSoft.DistributedLock
         /// <param name="tableName">The name of the table to store locks (default: DistributedLocks)</param>
         public SqlServerDistributedLockProvider(string connectionString, string tableName = "DistributedLocks")
         {
-            if (connectionString == null)
-                throw new ArgumentNullException("connectionString");
-            if (tableName == null)
-                throw new ArgumentNullException("tableName");
-
-            _connectionString = connectionString;
-            _tableName = tableName;
+            _connectionString = connectionString ?? throw new ArgumentNullException("connectionString");
+            _tableName = tableName ?? throw new ArgumentNullException("tableName");
         }
 
         /// <summary>
@@ -98,8 +93,6 @@ namespace MDLSoft.DistributedLock
             }
         }
 
-
-
         public IDistributedLock? TryAcquireLock(string lockId, TimeSpan? timeout = null)
         {
             if (string.IsNullOrEmpty(lockId))
@@ -121,9 +114,10 @@ namespace MDLSoft.DistributedLock
                         insertCommand.CommandText = string.Format(@"
                             INSERT INTO [{0}] ([LockId], [LockToken])
                             VALUES (@LockId, @LockToken)", _tableName);
-                        insertCommand.Parameters.AddWithValue("@LockId", lockId);
-                        insertCommand.Parameters.AddWithValue("@LockToken", lockToken);
 
+                        insertCommand.Parameters.Add(new SqlParameter("@LockId", SqlDbType.NVarChar, 255) { Value = lockId });
+                        insertCommand.Parameters.Add(new SqlParameter("@LockToken", SqlDbType.NVarChar, 255) { Value = lockToken });
+    
                         try
                         {
                             insertCommand.ExecuteNonQuery();
@@ -214,7 +208,7 @@ namespace MDLSoft.DistributedLock
 #if NET40 || NET451
                 await TaskEx.Delay(100, cancellationToken).ConfigureAwait(false);
 #else
-                await Task.Run(() => Thread.Sleep(100), cancellationToken).ConfigureAwait(false);
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 #endif
 #endif
             } while (timeoutAt.HasValue);
