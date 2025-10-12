@@ -18,9 +18,6 @@
     <PackageProjectUrl>https://github.com/mdallago/MDLSoft.DistributedLock</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mdallago/MDLSoft.DistributedLock</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
-
 </Project>
