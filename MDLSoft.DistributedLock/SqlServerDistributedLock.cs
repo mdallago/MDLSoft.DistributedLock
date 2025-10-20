@@ -2,6 +2,8 @@
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
+
 
 #if NETSTANDARD2_0
 using Microsoft.Data.SqlClient;
@@ -28,10 +30,10 @@ namespace MDLSoft.DistributedLock
 
         internal SqlServerDistributedLock(string connectionString, string tableName, string lockId, string lockToken)
         {
-            _connectionString = connectionString ?? throw new ArgumentNullException("connectionString");
-            _tableName = tableName ?? throw new ArgumentNullException("tableName");
-            _lockId = lockId ?? throw new ArgumentNullException("lockId");
-            _lockToken = lockToken ?? throw new ArgumentNullException("lockToken");
+            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            _lockId = lockId ?? throw new ArgumentNullException(nameof(lockId));
+            _lockToken = lockToken ?? throw new ArgumentNullException(nameof(lockToken));
             _isAcquired = true;
         }
 
@@ -46,9 +48,11 @@ namespace MDLSoft.DistributedLock
                     connection.Open();
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = string.Format(
+                        #pragma warning disable CA2100
+                        command.CommandText = string.Format(CultureInfo.CurrentCulture,
                             "DELETE FROM [{0}] WHERE [LockId] = @LockId AND [LockToken] = @LockToken",
                             _tableName);
+                        #pragma warning restore CA2100
                         command.Parameters.Add(new SqlParameter("@LockId", SqlDbType.NVarChar, 255) { Value = _lockId });
                         command.Parameters.Add(new SqlParameter("@LockToken", SqlDbType.NVarChar, 255) { Value = _lockToken });
                         command.ExecuteNonQuery();
@@ -81,9 +85,11 @@ namespace MDLSoft.DistributedLock
 #endif
                     using (var command = connection.CreateCommand())
                     {
-                        command.CommandText = string.Format(
+                        #pragma warning disable CA2100
+                        command.CommandText = string.Format(CultureInfo.CurrentCulture,
                             "DELETE FROM [{0}] WHERE [LockId] = @LockId AND [LockToken] = @LockToken",
                             _tableName);
+                        #pragma warning restore CA2100
                         command.Parameters.Add(new SqlParameter("@LockId", SqlDbType.NVarChar, 255) { Value = _lockId });
                         command.Parameters.Add(new SqlParameter("@LockToken", SqlDbType.NVarChar, 255) { Value = _lockToken });
 #if NETSTANDARD2_0
@@ -108,7 +114,8 @@ namespace MDLSoft.DistributedLock
         public void Dispose()
         {
             if (_isDisposed) return;
-            
+
+            #pragma warning disable CA1031
             try
             {
                 if (_isAcquired)
@@ -124,6 +131,7 @@ namespace MDLSoft.DistributedLock
             {
                 _isDisposed = true;
             }
+            #pragma warning restore CA1031
         }
     }
 }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace MDLSoft.DistributedLock
 {
@@ -17,7 +17,7 @@ namespace MDLSoft.DistributedLock
     /// </summary>
     public class DistributedLockTimeoutException : DistributedLockException
     {
-        public string LockId { get; }
+        public string? LockId { get; }
 
         public DistributedLockTimeoutException(string lockId) 
             : base($"Timeout occurred while trying to acquire lock '{lockId}'")
@@ -30,6 +30,13 @@ namespace MDLSoft.DistributedLock
         {
             LockId = lockId;
         }
+        public DistributedLockTimeoutException()
+        {
+        }
+
+        public DistributedLockTimeoutException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 
     /// <summary>
@@ -37,7 +44,7 @@ namespace MDLSoft.DistributedLock
     /// </summary>
     public class DistributedLockOperationException : DistributedLockException
     {
-        public string LockId { get; }
+        public string? LockId { get; }
 
         public DistributedLockOperationException(string lockId, string operation) 
             : base($"Failed to {operation} lock '{lockId}'")
@@ -49,6 +56,16 @@ namespace MDLSoft.DistributedLock
             : base($"Failed to {operation} lock '{lockId}'", innerException)
         {
             LockId = lockId;
+        }
+        public DistributedLockOperationException()
+        {
+        }
+
+        public DistributedLockOperationException(string message) : base(message)
+        {
+        }
+        public DistributedLockOperationException(string message, Exception innerException) : base(message, innerException)
+        {
         }
     }
 }

@@ -2,6 +2,8 @@
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
+
 
 #if NETSTANDARD2_0
 using Microsoft.Data.SqlClient;
@@ -26,8 +28,8 @@ namespace MDLSoft.DistributedLock
         /// <param name="tableName">The name of the table to store locks (default: DistributedLocks)</param>
         public SqlServerDistributedLockProvider(string connectionString, string tableName = "DistributedLocks")
         {
-            _connectionString = connectionString ?? throw new ArgumentNullException("connectionString");
-            _tableName = tableName ?? throw new ArgumentNullException("tableName");
+            _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+            _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
         }
 
         /// <summary>
@@ -40,7 +42,8 @@ namespace MDLSoft.DistributedLock
                 connection.Open();
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = string.Format(@"
+                    #pragma warning disable CA2100
+                    command.CommandText = string.Format(CultureInfo.CurrentCulture, @"
                         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{0}' AND xtype='U')
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
@@ -48,6 +51,7 @@ namespace MDLSoft.DistributedLock
                             [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
                         );
                     ", _tableName);
+                    #pragma warning restore CA2100
                     command.ExecuteNonQuery();
                 }
             }
@@ -71,7 +75,8 @@ namespace MDLSoft.DistributedLock
 #endif
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = string.Format(@"
+                    #pragma warning disable CA2100
+                    command.CommandText = string.Format(CultureInfo.CurrentCulture, @"
                         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{0}' AND xtype='U')
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
@@ -79,6 +84,7 @@ namespace MDLSoft.DistributedLock
                             [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
                         );
                     ", _tableName);
+                    #pragma warning restore CA2100
                     
 #if NETSTANDARD2_0
                     await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
@@ -96,9 +102,9 @@ namespace MDLSoft.DistributedLock
         public IDistributedLock? TryAcquireLock(string lockId, TimeSpan? timeout = null)
         {
             if (string.IsNullOrEmpty(lockId))
-                throw new ArgumentException("Lock ID cannot be null or empty", "lockId");
+                throw new ArgumentException("Lock ID cannot be null or empty", nameof(lockId));
             if (lockId.Length > 255)
-                throw new ArgumentException("Lock ID length must be <= 255 characters", "lockId");
+                throw new ArgumentException("Lock ID length must be <= 255 characters", nameof(lockId));
 
             var lockToken = Guid.NewGuid().ToString();
             var timeoutAt = timeout.HasValue ? DateTime.UtcNow.Add(timeout.Value) : (DateTime?)null;
@@ -111,9 +117,11 @@ namespace MDLSoft.DistributedLock
                     // Try to insert the new lock - let PK violation handle conflicts
                     using (var insertCommand = connection.CreateCommand())
                     {
-                        insertCommand.CommandText = string.Format(@"
+                        #pragma warning disable CA2100
+                        insertCommand.CommandText = string.Format(CultureInfo.CurrentCulture, @"
                             INSERT INTO [{0}] ([LockId], [LockToken])
                             VALUES (@LockId, @LockToken)", _tableName);
+                        #pragma warning restore CA2100
 
                         insertCommand.Parameters.Add(new SqlParameter("@LockId", SqlDbType.NVarChar, 255) { Value = lockId });
                         insertCommand.Parameters.Add(new SqlParameter("@LockToken", SqlDbType.NVarChar, 255) { Value = lockToken });
@@ -146,9 +154,9 @@ namespace MDLSoft.DistributedLock
         public async Task<IDistributedLock?> TryAcquireLockAsync(string lockId, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(lockId))
-                throw new ArgumentException("Lock ID cannot be null or empty", "lockId");
+                throw new ArgumentException("Lock ID cannot be null or empty", nameof(lockId));
             if (lockId.Length > 255)
-                throw new ArgumentException("Lock ID length must be <= 255 characters", "lockId");
+                throw new ArgumentException("Lock ID length must be <= 255 characters", nameof(lockId));
 
             var lockToken = Guid.NewGuid().ToString();
             var timeoutAt = timeout.HasValue ? DateTime.UtcNow.Add(timeout.Value) : (DateTime?)null;
@@ -169,9 +177,11 @@ namespace MDLSoft.DistributedLock
                     // Try to insert the new lock - let PK violation handle conflicts
                     using (var insertCommand = connection.CreateCommand())
                     {
-                        insertCommand.CommandText = string.Format(@"
+                        #pragma warning disable CA2100
+                        insertCommand.CommandText = string.Format(CultureInfo.CurrentCulture, @"
                             INSERT INTO [{0}] ([LockId], [LockToken])
                             VALUES (@LockId, @LockToken)", _tableName);
+                        #pragma warning restore CA2100
                         insertCommand.Parameters.AddWithValue("@LockId", lockId);
                         insertCommand.Parameters.AddWithValue("@LockToken", lockToken);
 
