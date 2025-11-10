@@ -48,7 +48,7 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
-                            [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+                            [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
                         );
                     ", _tableName);
                     #pragma warning restore CA2100
@@ -81,7 +81,7 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
-                            [CreatedAt] DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+                            [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
                         );
                     ", _tableName);
                     #pragma warning restore CA2100
