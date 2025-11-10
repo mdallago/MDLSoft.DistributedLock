@@ -13,9 +13,9 @@
     <PackageTags>distributed-lock;sql-server;concurrency;lock;lightweight;no-dependencies</PackageTags>
     <RepositoryUrl>https://github.com/mdallago/MDLSoft.DistributedLock</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.3</Version>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <FileVersion>1.0.3.0</FileVersion>
+    <Version>1.0.4</Version>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <FileVersion>1.0.4.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -81,6 +81,7 @@
   </ItemGroup>
 
 </Project>
+
 
 
 
