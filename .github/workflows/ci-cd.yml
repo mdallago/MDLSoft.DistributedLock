@@ -47,7 +47,7 @@ jobs:
       run: dotnet test --no-build --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
       
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: test-results
@@ -87,7 +87,7 @@ jobs:
       run: dotnet pack --no-build --configuration Release --output ./artifacts
       
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: nuget-packages
         path: ./artifacts/*.nupkg
@@ -108,7 +108,7 @@ jobs:
       uses: microsoft/setup-msbuild@v2
     
     - name: 📥 Download NuGet package artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: nuget-packages
         path: ${{ env.NuGetDirectory }}
