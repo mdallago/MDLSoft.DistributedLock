@@ -32,7 +32,7 @@ jobs:
       uses: microsoft/setup-msbuild@v2
       
     - name: Setup SQL Server
-      uses: potatoqualitee/mssqlsuite@v1.11
+      uses: potatoqualitee/mssqlsuite@v1.12
       with:
         install: sqlengine, sqlclient
         version: 2022
