@@ -8,18 +8,18 @@ using MDLSoft.DistributedLock;
 
 namespace MDLSoft.DistributedLock.Tests
 {
-    public class SqlServerDistributedLockProviderTests : IDisposable
+    public class SqlServerDistributedLockProviderUTCTests : IDisposable
     {
         private readonly string _connectionString;
         private readonly SqlServerDistributedLockProvider _lockProvider;
         private const string TestTableName = "TestDistributedLocks";
 
-        public SqlServerDistributedLockProviderTests()
+        public SqlServerDistributedLockProviderUTCTests()
         {
             // Use local SQL Server instance for testing
             // You can modify this connection string for your test environment
             _connectionString = @"Server=(localdb)\MSSQLLocalDB;Database=TestDistributedLocks;Integrated Security=true;TrustServerCertificate=true;";
-            _lockProvider = new SqlServerDistributedLockProvider(_connectionString, TestTableName, false);
+            _lockProvider = new SqlServerDistributedLockProvider(_connectionString, TestTableName);
 
             // Ensure database and table exist for testing
             CreateTestDatabase();
@@ -43,7 +43,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldReturnLock_WhenLockNotExists()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-1";
@@ -63,7 +63,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldReturnNull_WhenLockAlreadyExists()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-2";
@@ -83,7 +83,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public async Task TryAcquireLockAsync_ShouldReturnLock_WhenLockNotExists()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-3";
@@ -103,7 +103,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void AcquireLock_ShouldReturnLock_WhenLockNotExists()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-4";
@@ -123,7 +123,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void AcquireLock_ShouldThrowTimeout_WhenLockAlreadyExistsAndTimeoutSpecified()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-5";
@@ -144,7 +144,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public async Task AcquireLockAsync_ShouldReturnLock_WhenLockNotExists()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-6";
@@ -164,7 +164,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void Lock_ShouldBeReleasedAfterDispose()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-7";
@@ -189,7 +189,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void Lock_ShouldBeReleasedAfterRelease()
         {
-
+            
 
             // Arrange
             var lockId = "test-lock-8";
@@ -212,7 +212,7 @@ namespace MDLSoft.DistributedLock.Tests
         [Fact]
         public void TryAcquireLock_ShouldThrow_WhenLockIdTooLong()
         {
-
+            
             var longId = new string('a', 256);
             Assert.Throws<ArgumentException>(() => _lockProvider.TryAcquireLock(longId));
         }
@@ -257,7 +257,7 @@ namespace MDLSoft.DistributedLock.Tests
 
         public void Dispose()
         {
-
+            
 
             // Cleanup test data
             try

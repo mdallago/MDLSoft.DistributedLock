@@ -189,6 +189,17 @@ The library automatically creates the following table structure:
 CREATE TABLE [DistributedLocks] (
     [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
     [LockToken] NVARCHAR(255) NOT NULL,
+    [CreatedAt] DATETIME NOT NULL DEFAULT GETDATE()
+);
+```
+
+or
+
+
+```sql
+CREATE TABLE [DistributedLocks] (
+    [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
+    [LockToken] NVARCHAR(255) NOT NULL,
     [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
 );
 ```

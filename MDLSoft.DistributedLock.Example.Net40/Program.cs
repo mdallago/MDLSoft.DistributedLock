@@ -62,7 +62,7 @@ namespace MDLSoft.DistributedLock.Example.Net40
             Console.WriteLine("Using connection string: " + _connectionString.Replace(_connectionString.Split(';')[0], "Server=***"));
 
             // Create lock provider
-            _lockProvider = new SqlServerDistributedLockProvider(_connectionString, "ExampleLocks");
+            _lockProvider = new SqlServerDistributedLockProvider(_connectionString, "ExampleLocks", false);
 
             // Ensure the database table exists
             try

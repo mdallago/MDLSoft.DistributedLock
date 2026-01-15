@@ -20,16 +20,19 @@ namespace MDLSoft.DistributedLock
     {
         private readonly string _connectionString;
         private readonly string _tableName;
+        private readonly string _getDateFunction;
 
         /// <summary>
         /// Initializes a new instance of the SqlServerDistributedLockProvider
         /// </summary>
         /// <param name="connectionString">The SQL Server connection string</param>
         /// <param name="tableName">The name of the table to store locks (default: DistributedLocks)</param>
-        public SqlServerDistributedLockProvider(string connectionString, string tableName = "DistributedLocks")
+        /// <param name="useUtc">Store creation date using UTC or not (default: true)</param>
+        public SqlServerDistributedLockProvider(string connectionString, string tableName = "DistributedLocks", bool useUtc = true)
         {
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
+            _getDateFunction = useUtc ? "GETUTCDATE()" : "GETDATE()";
         }
 
         /// <summary>
@@ -48,9 +51,9 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
-                            [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
+                            [CreatedAt] DATETIME NOT NULL DEFAULT {1}
                         );
-                    ", _tableName);
+                    ", _tableName, _getDateFunction);
                     #pragma warning restore CA2100
                     command.ExecuteNonQuery();
                 }
@@ -81,9 +84,9 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
-                            [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
+                            [CreatedAt] DATETIME NOT NULL DEFAULT {1}
                         );
-                    ", _tableName);
+                    ", _tableName, _getDateFunction);
                     #pragma warning restore CA2100
                     
 #if NETSTANDARD2_0
