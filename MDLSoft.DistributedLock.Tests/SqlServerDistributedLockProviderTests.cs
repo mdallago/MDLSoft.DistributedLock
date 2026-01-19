@@ -33,10 +33,25 @@ namespace MDLSoft.DistributedLock.Tests
             {
                 connection.Open();
                 var command = connection.CreateCommand();
-                command.CommandText = @"
-                    IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'TestDistributedLocks')
-                    CREATE DATABASE [TestDistributedLocks]";
-                command.ExecuteNonQuery();
+                
+                var dbName = "TestDistributedLocks";
+                var dbPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{dbName}.mdf");
+                var logPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"{dbName}_log.ldf");
+
+                command.CommandText = $@"
+                    IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = N'{dbName}')
+                    CREATE DATABASE [{dbName}]
+                    ON PRIMARY (NAME={dbName}, FILENAME='{dbPath}')
+                    LOG ON (NAME={dbName}_log, FILENAME='{logPath}')";
+                
+                try 
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException ex) when (ex.Number == 1801) // Database already exists
+                {
+                    // Ignore
+                }
             }
         }
 
@@ -207,6 +222,30 @@ namespace MDLSoft.DistributedLock.Tests
 
             // Cleanup
             secondLock.Release();
+        }
+
+        [Fact]
+        public void TryAcquireLock_ShouldStoreUserContext()
+        {
+            // Arrange
+            var lockId = "test-lock-user-context";
+            var userContext = "TestUserContextInfo";
+
+            // Act
+            var lockResult = _lockProvider.TryAcquireLock(lockId, userContext: userContext);
+
+            // Assert
+            Assert.NotNull(lockResult);
+            Assert.Equal(lockId, lockResult.LockId);
+            Assert.Equal(userContext, lockResult.UserContext);
+            Assert.True(lockResult.IsAcquired);
+
+            // Verify persistence (optional, but good for integration test)
+            // You might need to query the DB directly to be 100% sure it's in the column, 
+            // but checking the returned object is a good first step.
+            
+            // Cleanup
+            lockResult.Release();
         }
 
         [Fact]

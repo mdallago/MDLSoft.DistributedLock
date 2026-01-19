@@ -15,6 +15,11 @@ namespace MDLSoft.DistributedLock
         string LockId { get; }
 
         /// <summary>
+        /// Gets the user context associated with this lock, if any
+        /// </summary>
+        string? UserContext { get; }
+
+        /// <summary>
         /// Gets a value indicating whether the lock is currently acquired
         /// </summary>
         bool IsAcquired { get; }

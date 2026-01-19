@@ -51,8 +51,12 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
+                            [UserContext] NVARCHAR(MAX) NULL,
                             [CreatedAt] DATETIME NOT NULL DEFAULT {1}
                         );
+                        
+                        IF COL_LENGTH('{0}', 'UserContext') IS NULL
+                        ALTER TABLE [{0}] ADD [UserContext] NVARCHAR(MAX) NULL;
                     ", _tableName, _getDateFunction);
                     #pragma warning restore CA2100
                     command.ExecuteNonQuery();
@@ -84,8 +88,12 @@ namespace MDLSoft.DistributedLock
                         CREATE TABLE [{0}] (
                             [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
                             [LockToken] NVARCHAR(255) NOT NULL,
+                            [UserContext] NVARCHAR(MAX) NULL,
                             [CreatedAt] DATETIME NOT NULL DEFAULT {1}
                         );
+                        
+                        IF COL_LENGTH('{0}', 'UserContext') IS NULL
+                        ALTER TABLE [{0}] ADD [UserContext] NVARCHAR(MAX) NULL;
                     ", _tableName, _getDateFunction);
                     #pragma warning restore CA2100
                     
@@ -102,7 +110,7 @@ namespace MDLSoft.DistributedLock
             }
         }
 
-        public IDistributedLock? TryAcquireLock(string lockId, TimeSpan? timeout = null)
+        public IDistributedLock? TryAcquireLock(string lockId, TimeSpan? timeout = null, string? userContext = null)
         {
             if (string.IsNullOrEmpty(lockId))
                 throw new ArgumentException("Lock ID cannot be null or empty", nameof(lockId));
@@ -122,18 +130,19 @@ namespace MDLSoft.DistributedLock
                     {
                         #pragma warning disable CA2100
                         insertCommand.CommandText = string.Format(CultureInfo.CurrentCulture, @"
-                            INSERT INTO [{0}] ([LockId], [LockToken])
-                            VALUES (@LockId, @LockToken)", _tableName);
+                            INSERT INTO [{0}] ([LockId], [LockToken], [UserContext])
+                            VALUES (@LockId, @LockToken, @UserContext)", _tableName);
                         #pragma warning restore CA2100
 
                         insertCommand.Parameters.Add(new SqlParameter("@LockId", SqlDbType.NVarChar, 255) { Value = lockId });
                         insertCommand.Parameters.Add(new SqlParameter("@LockToken", SqlDbType.NVarChar, 255) { Value = lockToken });
+                        insertCommand.Parameters.Add(new SqlParameter("@UserContext", SqlDbType.NVarChar, -1) { Value = (object?)userContext ?? DBNull.Value });
     
                         try
                         {
                             insertCommand.ExecuteNonQuery();
                             // Success - we got the lock
-                            return new SqlServerDistributedLock(_connectionString, _tableName, lockId, lockToken);
+                            return new SqlServerDistributedLock(_connectionString, _tableName, lockId, lockToken, userContext);
                         }
                         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601) // PK violation or unique constraint
                         {
@@ -154,7 +163,7 @@ namespace MDLSoft.DistributedLock
             return null;
         }
 
-        public async Task<IDistributedLock?> TryAcquireLockAsync(string lockId, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IDistributedLock?> TryAcquireLockAsync(string lockId, TimeSpan? timeout = null, string? userContext = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (string.IsNullOrEmpty(lockId))
                 throw new ArgumentException("Lock ID cannot be null or empty", nameof(lockId));
@@ -182,11 +191,12 @@ namespace MDLSoft.DistributedLock
                     {
                         #pragma warning disable CA2100
                         insertCommand.CommandText = string.Format(CultureInfo.CurrentCulture, @"
-                            INSERT INTO [{0}] ([LockId], [LockToken])
-                            VALUES (@LockId, @LockToken)", _tableName);
+                            INSERT INTO [{0}] ([LockId], [LockToken], [UserContext])
+                            VALUES (@LockId, @LockToken, @UserContext)", _tableName);
                         #pragma warning restore CA2100
                         insertCommand.Parameters.AddWithValue("@LockId", lockId);
                         insertCommand.Parameters.AddWithValue("@LockToken", lockToken);
+                        insertCommand.Parameters.AddWithValue("@UserContext", (object?)userContext ?? DBNull.Value);
 
                         try
                         {
@@ -200,7 +210,7 @@ namespace MDLSoft.DistributedLock
 #endif
 #endif
                             // Success - we got the lock
-                            return new SqlServerDistributedLock(_connectionString, _tableName, lockId, lockToken);
+                            return new SqlServerDistributedLock(_connectionString, _tableName, lockId, lockToken, userContext);
                         }
                         catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601) // PK violation or unique constraint
                         {
@@ -229,9 +239,9 @@ namespace MDLSoft.DistributedLock
             return null;
         }
 
-        public IDistributedLock AcquireLock(string lockId, TimeSpan? timeout = null)
+        public IDistributedLock AcquireLock(string lockId, TimeSpan? timeout = null, string? userContext = null)
         {
-            var lockResult = TryAcquireLock(lockId, timeout);
+            var lockResult = TryAcquireLock(lockId, timeout, userContext);
             if (lockResult == null)
             {
                 throw new DistributedLockTimeoutException(lockId, timeout ?? TimeSpan.Zero);
@@ -239,9 +249,9 @@ namespace MDLSoft.DistributedLock
             return lockResult;
         }
 
-        public async Task<IDistributedLock> AcquireLockAsync(string lockId, TimeSpan? timeout = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IDistributedLock> AcquireLockAsync(string lockId, TimeSpan? timeout = null, string? userContext = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var lockResult = await TryAcquireLockAsync(lockId, timeout, cancellationToken).ConfigureAwait(false);
+            var lockResult = await TryAcquireLockAsync(lockId, timeout, userContext, cancellationToken).ConfigureAwait(false);
             if (lockResult == null)
             {
                 throw new DistributedLockTimeoutException(lockId, timeout ?? TimeSpan.Zero);
