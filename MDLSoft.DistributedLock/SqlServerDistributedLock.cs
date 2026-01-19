@@ -22,18 +22,21 @@ namespace MDLSoft.DistributedLock
         private readonly string _tableName;
         private readonly string _lockId;
         private readonly string _lockToken;
+        private readonly string? _userContext;
         private bool _isDisposed;
         private bool _isAcquired;
 
         public string LockId { get { return _lockId; } }
+        public string? UserContext { get { return _userContext; } }
         public bool IsAcquired { get { return _isAcquired && !_isDisposed; } }
 
-        internal SqlServerDistributedLock(string connectionString, string tableName, string lockId, string lockToken)
+        internal SqlServerDistributedLock(string connectionString, string tableName, string lockId, string lockToken, string? userContext = null)
         {
             _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
             _tableName = tableName ?? throw new ArgumentNullException(nameof(tableName));
             _lockId = lockId ?? throw new ArgumentNullException(nameof(lockId));
             _lockToken = lockToken ?? throw new ArgumentNullException(nameof(lockToken));
+            _userContext = userContext;
             _isAcquired = true;
         }
 

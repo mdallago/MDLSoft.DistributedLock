@@ -76,28 +76,21 @@ using (var lockProvider = new SqlServerDistributedLockProvider(connectionString)
 }
 ```
 
-### 3. Advanced Usage
+### 4. Storing User Context
+
+You can optionally store a user context string (e.g., username, machine name, reason) with the lock. This can be useful for debugging or administrative tools to see who holds a lock.
 
 ```csharp
-var lockProvider = new SqlServerDistributedLockProvider(connectionString);
-
-try
+// Acquire lock with user context
+using (var distributedLock = await lockProvider.TryAcquireLockAsync(
+    lockId: "my-resource",
+    userContext: "User: john.doe | Machine: WEB-01"))
 {
-    // Acquire lock with timeout
-    using (var distributedLock = await lockProvider.AcquireLockAsync(
-        lockId: "critical-operation", 
-        timeout: TimeSpan.FromSeconds(30)))
+    if (distributedLock != null)
     {
-        // Your critical work here
-        await ProcessLongRunningOperationAsync();
-        
-        // Manual release (optional - automatic on dispose)
-        await distributedLock.ReleaseAsync();
+        Console.WriteLine($"Lock acquired by: {distributedLock.UserContext}");
+        // Do work...
     }
-}
-catch (DistributedLockTimeoutException ex)
-{
-    Console.WriteLine($"Could not acquire lock '{ex.LockId}' within the specified timeout");
 }
 ```
 
@@ -147,10 +140,10 @@ The main interface for acquiring distributed locks.
 
 #### Methods
 
-- `TryAcquireLock(string lockId, TimeSpan? timeout = null)` - Attempts to acquire a lock synchronously
-- `TryAcquireLockAsync(string lockId, TimeSpan? timeout = null, CancellationToken cancellationToken = default)` - Attempts to acquire a lock asynchronously
-- `AcquireLock(string lockId, TimeSpan? timeout = null)` - Acquires a lock synchronously (throws on failure)
-- `AcquireLockAsync(string lockId, TimeSpan? timeout = null, CancellationToken cancellationToken = default)` - Acquires a lock asynchronously (throws on failure)
+- `TryAcquireLock(string lockId, TimeSpan? timeout = null, string? userContext = null)` - Attempts to acquire a lock synchronously
+- `TryAcquireLockAsync(string lockId, TimeSpan? timeout = null, string? userContext = null, CancellationToken cancellationToken = default)` - Attempts to acquire a lock asynchronously
+- `AcquireLock(string lockId, TimeSpan? timeout = null, string? userContext = null)` - Acquires a lock synchronously (throws on failure)
+- `AcquireLockAsync(string lockId, TimeSpan? timeout = null, string? userContext = null, CancellationToken cancellationToken = default)` - Acquires a lock asynchronously (throws on failure)
 
 ### IDistributedLock
 
@@ -159,6 +152,7 @@ Represents an acquired distributed lock.
 #### Properties
 
 - `string LockId` - The unique identifier for the lock
+- `string? UserContext` - The user context associated with the lock
 - `bool IsAcquired` - Whether the lock is currently acquired
 
 #### Methods
@@ -189,6 +183,7 @@ The library automatically creates the following table structure:
 CREATE TABLE [DistributedLocks] (
     [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
     [LockToken] NVARCHAR(255) NOT NULL,
+    [UserContext] NVARCHAR(MAX) NULL,
     [CreatedAt] DATETIME NOT NULL DEFAULT GETDATE()
 );
 ```
@@ -200,6 +195,7 @@ or
 CREATE TABLE [DistributedLocks] (
     [LockId] NVARCHAR(255) NOT NULL PRIMARY KEY,
     [LockToken] NVARCHAR(255) NOT NULL,
+    [UserContext] NVARCHAR(MAX) NULL,
     [CreatedAt] DATETIME NOT NULL DEFAULT GETUTCDATE()
 );
 ```
